@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">clicker</string>
+    <string name="acccessibility_service_description">my description</string>
+    <string name="accessibility_service_description">text</string>
+    <string name="accessibility_service_id">com.example.clicker/.MyAccessibilityService</string>
+</resources>
