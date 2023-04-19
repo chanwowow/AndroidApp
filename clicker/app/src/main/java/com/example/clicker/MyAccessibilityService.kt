@@ -26,8 +26,6 @@ var CLKSVC : MyAccessibilityService? = null // 이게 객체를 생성하는 부
 class MyAccessibilityService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private lateinit var telephonyManager: TelephonyManager
-
 
     override fun onInterrupt() {
         // 뭔가 잘못될때
@@ -85,11 +83,6 @@ class MyAccessibilityService : AccessibilityService() {
 
         this.serviceInfo = info
 
-
-        //Telephony Part
-        telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        registerTelephonyCallback(telephonyManager)
-
 //        performClick(500f, 1300f)
     }
 
@@ -125,45 +118,6 @@ class MyAccessibilityService : AccessibilityService() {
                 val bb=1
             }
         }, null)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun registerTelephonyCallback(telephonyManager: TelephonyManager){
-        telephonyManager.registerTelephonyCallback(
-            mainExecutor,
-            object : TelephonyCallback(), TelephonyCallback.ServiceStateListener {
-                @SuppressLint("SuspiciousIndentation")
-                override fun onServiceStateChanged(serviceState: ServiceState) {
-                    val stateStr :String
-                    when (serviceState.state) {
-                        ServiceState.STATE_IN_SERVICE->{
-                            stateStr= "서비스 중 ..."
-                            //outOfServiceTime=null
-                            Toast.makeText(applicationContext, stateStr, Toast.LENGTH_SHORT).show()
-                        }
-                        ServiceState.STATE_OUT_OF_SERVICE->{
-                            stateStr = "OUT OF SERVICE XXXX"
-                            Toast.makeText(applicationContext, stateStr, Toast.LENGTH_SHORT).show()
-                        }
-                        ServiceState.STATE_EMERGENCY_ONLY->{
-                            stateStr = "EMERGENCY ONLY"
-                            Toast.makeText(applicationContext, stateStr, Toast.LENGTH_SHORT).show()
-                            //outOfServiceTime=null
-                        }
-                        ServiceState.STATE_POWER_OFF->{
-                            stateStr="비행기모드 상태"
-                            Toast.makeText(applicationContext, stateStr, Toast.LENGTH_SHORT).show()
-                        }
-                        else->{
-                            stateStr="INSERT SIM"
-                        }
-                    }
-                    val intent = Intent("PhoneServiceStateBCR")
-                    intent.putExtra("serviceState",stateStr )
-                    sendBroadcast(intent) // BCR 내용정리
-                }
-            })
-
     }
 
 

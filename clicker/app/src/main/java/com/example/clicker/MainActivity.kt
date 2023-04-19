@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
             }//2. 오버레이 권한 없다면 먼저 권한 신청
             else{
-                askPermission()
+                askOverlayPermission()
                 Toast.makeText(this, "Overlay Permission is needed", Toast.LENGTH_SHORT).show()
             }
         }
@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
         else if(!Settings.canDrawOverlays(this)){
-            askPermission()
+            askOverlayPermission()
         }
     }
 
@@ -97,9 +97,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun askPermission() {
+    private fun askOverlayPermission() {
         val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            Uri.parse("package:$packageName"))
+            Uri.parse("package:$packageName"))  // ## 이 부분이 제기능을 못하고 있는것같은데...?
         startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
     }
 
