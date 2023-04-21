@@ -1,10 +1,12 @@
 package com.example.clicker
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
@@ -12,9 +14,13 @@ import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.view.*
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import java.util.*
 
 
@@ -83,11 +89,11 @@ class Service : Service() {
                     val stateStr :String
                     when (serviceState.state) {
                         ServiceState.STATE_IN_SERVICE->{
-                            stateStr= "서비스 중 ..."
+                            stateStr= "IN SVC ..."
                             //outOfServiceTime=null
                         }
                         ServiceState.STATE_OUT_OF_SERVICE->{
-                            stateStr = "OUT OF SERVICE XXXX"
+                            stateStr = "OUT OF SVC"
                         }
                         ServiceState.STATE_EMERGENCY_ONLY-> {
                             stateStr = "EMERGENCY ONLY"
@@ -100,11 +106,39 @@ class Service : Service() {
                             stateStr="INSERT SIM"
                         }
                     }
-                    statusText.text =stateStr
+                    statusText.text =stateStr + networkTypeChecker()
                 }
             })
 
     }
+
+
+    // 이 함수를 통해서 RAT 정보도 파악해서 출력할거다
+    // 오 이렇게 함수 이름 옆에 형식 쓰는게 리턴 타입이구나
+    private fun networkTypeChecker(): String {
+
+        val networkType : Int = if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+        ) return "Needs Permission"
+          // -> 권한 이미 얻었다면 아래 쭉 실행한다.
+        else   telephonyManager.dataNetworkType
+
+        // 위에서 읽은 NW 타입을 Str으로 변환 반환
+        return when(networkType){
+            TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
+            TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
+            TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
+            TelephonyManager.NETWORK_TYPE_CDMA -> "CDMA"
+            TelephonyManager.NETWORK_TYPE_TD_SCDMA -> "TD_SCDMA"
+            TelephonyManager.NETWORK_TYPE_UMTS -> "WCDMA"
+            TelephonyManager.NETWORK_TYPE_HSDPA -> "HSDPA"
+            TelephonyManager.NETWORK_TYPE_HSUPA -> "HSUPA"
+            TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA"
+            TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
+            TelephonyManager.NETWORK_TYPE_NR -> "NR"
+            else -> "UKNWON"
+        }
+    }
+
 
 
     override fun onDestroy() {

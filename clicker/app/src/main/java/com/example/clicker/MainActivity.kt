@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Path
 import android.graphics.PixelFormat
@@ -27,6 +28,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.Manifest
 
 import com.example.clicker.MyAccessibilityService
 
@@ -41,22 +45,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        permissionCheckRequest()
+
         startButton = findViewById (R.id.allowPermission)
         startButton.setOnClickListener {
             // 1. 오버레이 권한이 있으면 아래 실행
             if(Settings.canDrawOverlays(this)){
-
                 serviceIntent = Intent(this@MainActivity, Service::class.java)
                 startService(serviceIntent)
                 onBackPressed()
-
-            }//2. 오버레이 권한 없다면 먼저 권한 신청
+            }
+            //2. 오버레이 권한 없다면 먼저 권한 신청
             else{
-                askOverlayPermission()
-                Toast.makeText(this, "Overlay Permission is needed", Toast.LENGTH_SHORT).show()
+                permissionCheckRequest()
             }
         }
-
     }
 
     private fun checkAccess(): Boolean {
@@ -75,14 +78,14 @@ class MainActivity : AppCompatActivity() {
     // 이 부분은 오버레이 권한 설정 후 돌아왔을때도 다시 체크되는 방식
   override fun onResume() {
         super.onResume()
+        permissionCheckRequest()
+
         val hasPermission = checkAccess()
         if (!hasPermission) {
             // 접근성 권한설정
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
-        else if(!Settings.canDrawOverlays(this)){
-            askOverlayPermission()
-        }
+
     }
 
     override fun onStop() {
@@ -96,11 +99,19 @@ class MainActivity : AppCompatActivity() {
         Log.d("test", "destroy")
     }
 
-
-    private fun askOverlayPermission() {
-        val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            Uri.parse("package:$packageName"))  // ## 이 부분이 제기능을 못하고 있는것같은데...?
-        startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
+    private fun permissionCheckRequest(){
+        // 1. 오버레이 권한 신청
+        if(!Settings.canDrawOverlays(this)){
+            Toast.makeText(this, "Overlay Permission is required", Toast.LENGTH_SHORT).show()
+            val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName"))
+            startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
+        }
+        // 2. 휴대폰 상태 읽기 권한 신청
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Phone Read Permission is required", Toast.LENGTH_SHORT).show()
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 123)
+        }
     }
 
     override fun onBackPressed() {
