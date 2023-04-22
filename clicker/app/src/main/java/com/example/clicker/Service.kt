@@ -1,5 +1,6 @@
 package com.example.clicker
 
+import androidx.appcompat.app.AppCompatActivity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
@@ -7,75 +8,129 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.view.KeyEvent
+import android.hardware.input.InputManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.provider.Settings
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
+import android.text.Layout
+import android.text.method.Touch
 import android.view.*
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.KeyEventDispatcher
+import androidx.core.view.KeyEventDispatcher.dispatchKeyEvent
+import androidx.core.view.ViewCompat.OnUnhandledKeyEventListenerCompat
+import java.security.Key
 import java.util.*
-
+import kotlin.concurrent.fixedRateTimer
 
 class Service : Service() {
     // 서비스를 실행하고 , 서비스 안에서 accessibility servie 메소드들을 사용하는 방식으로 설계
 
+    private lateinit var wm : WindowManager
     private lateinit var statusText : TextView
+    private lateinit var floatingBtn: View
+    private lateinit var infoView: View
+
+    private lateinit var paramsForInfo : WindowManager.LayoutParams
+    private lateinit var paramsForFloatingBtn : WindowManager.LayoutParams
+
+    private var startDragDistance:Int =0
+    private var xForRecord = 0
+    private var yForRecord = 0
+    private val xyLocation = IntArray(2)
+
     private lateinit var telephonyManager: TelephonyManager
     private var timer: Timer? = null
+    private var cnt =0
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
+    override fun onBind(intent: Intent): IBinder? {
+        return null
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate() {
         super.onCreate()
+        startDragDistance = dp2px(10f)
 
-        // 테스트용 출력 메세지
-        val message ="Service onCreate() 호출"
-        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
+        infoView=LayoutInflater.from(this).inflate(R.layout.view_in_service, null)
+        floatingBtn = LayoutInflater.from(this).inflate(R.layout.floating_button, null)
+        //  layout 불러오기
 
-        // [0419] 1. 일단 노티를 만들자
+        statusText=infoView.findViewById(R.id.StatusText)
 
         // [0419] 2. 오버레이 뷰를 띄우자
-            // Inflater를 사용해 layout 가져옴
-        val inflate = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        // 윈도우매니저 설정
-        val params = WindowManager.LayoutParams(
+        paramsForInfo = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                    or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-            PixelFormat.TRANSLUCENT
-        )
+                    or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+            PixelFormat.TRANSLUCENT)
+        paramsForInfo.gravity =Gravity.DISPLAY_CLIP_HORIZONTAL or Gravity.TOP  //INFO가 띄워지는 위치 지정
 
-        //OverlayView 가 띄워지는 위치 지정
-        params.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_VERTICAL
+        paramsForFloatingBtn = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            PixelFormat.TRANSLUCENT)
 
-        // 위치 지정
-        val mView: View = inflate.inflate(R.layout.view_in_service, null)
-        // view_in_service.xml layout 불러오기
+        // 윈도우매니저 설정 및 버튼 표시 add
+        wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        wm.addView(floatingBtn, paramsForFloatingBtn )
 
-        wm.addView(mView, params) // 윈도우에 layout 을 추가 한다.
-        /// ^오버레이 뷰에 관한 내용
+        floatingBtn.setOnTouchListener(TouchDragListener(paramsForFloatingBtn,startDragDistance,
+            {viewOnClick()},
+            {wm.updateViewLayout(floatingBtn,paramsForFloatingBtn)}))
 
-        statusText=mView.findViewById(R.id.StatusText)
+//        infoView.setOnTouchListener{ view, event ->
+//            view.performClick()
+//            false
+//        }   => 0421  뭐 이런거로 현재 레이어 터치를 무시하면 다음레이어로 넘어간다나? 근데 동작 안하는데?
+    }
+
+    private var isOn =false
+    private fun viewOnClick() {
+        if (isOn) {
+            wm.removeView(infoView)
+            timer?.cancel()
+        } else {
+            wm.addView(infoView, paramsForInfo)
+            noSvcTimer()
+        }
+        isOn = !isOn
+        (floatingBtn as TextView).text = if (isOn) "ON" else "OFF"
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+
+        // 테스트용 출력 메세지
+        Toast.makeText(applicationContext, "Service onStartCommand()", Toast.LENGTH_SHORT).show()
 
         // Telephony 내용
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         registerTelephonyCallback(telephonyManager)
-        ////
-
+        return START_STICKY
     }
 
     // 이 부분 reuse 방법 생각해보자
@@ -106,15 +161,12 @@ class Service : Service() {
                             stateStr="INSERT SIM"
                         }
                     }
-                    statusText.text =stateStr + networkTypeChecker()
+                    statusText.text =networkTypeChecker() + "\n\n" + stateStr + cnt++
                 }
             })
 
     }
 
-
-    // 이 함수를 통해서 RAT 정보도 파악해서 출력할거다
-    // 오 이렇게 함수 이름 옆에 형식 쓰는게 리턴 타입이구나
     private fun networkTypeChecker(): String {
 
         val networkType : Int = if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
@@ -139,30 +191,45 @@ class Service : Service() {
         }
     }
 
+    private fun noSvcTimer(){
 
+        timer = fixedRateTimer(initialDelay = 0,period = 1000) {
+            // 1. 비행기모드 설정 열고
+            val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
+            intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            //startActivity(intentAirplane)
+
+            // 2. 터치 액션 실행
+            floatingBtn.getLocationOnScreen(xyLocation)
+            CLKSVC?.clickAction(
+                xyLocation[0] + floatingBtn.right + 10,
+                xyLocation[1] + floatingBtn.bottom + 10)
+
+
+            //3. 1초 후 비행기모드 설정 닫기
+
+        }
+    }
+
+    // 이거 필요없을수도 있다.
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val x = paramsForFloatingBtn.x
+        val y = paramsForFloatingBtn.y
+        paramsForFloatingBtn.x = xForRecord
+        paramsForFloatingBtn.y = yForRecord
+        xForRecord = x
+        yForRecord = y
+        wm.updateViewLayout(floatingBtn, paramsForFloatingBtn)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
         "FloatingClickService onDestroy".logd()
         timer?.cancel()
+        // 테스트용 출력 메세지
+        Toast.makeText(applicationContext, "Service onDestroy()", Toast.LENGTH_SHORT).show()
         //manager.removeView(view)
     }
-
-//    private fun viewOnClick() {
-//        if (isOn) {
-//            timer?.cancel()
-//        } else {
-//            timer = fixedRateTimer(initialDelay = 0,
-//                period = 200) {
-//                view.getLocationOnScreen(location)
-//                autoClickService?.click(location[0] + view.right + 10,
-//                    location[1] + view.bottom + 10)
-//            }
-//        }
-//        isOn = !isOn
-//        (view as TextView).text = if (isOn) "ON" else "OFF"
-//
-//    }
-
 
 }

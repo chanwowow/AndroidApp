@@ -38,6 +38,7 @@ import com.example.clicker.MyAccessibilityService
 class MainActivity : AppCompatActivity() {
 
     private lateinit var startButton: Button
+    private lateinit var airplaneButton : Button
 
     private var serviceIntent: Intent? = null
 
@@ -46,6 +47,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         permissionCheckRequest()
+
+        airplaneButton=findViewById (R.id.airplaneModeSet)
+        airplaneButton.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS))
+        }
 
         startButton = findViewById (R.id.allowPermission)
         startButton.setOnClickListener {
