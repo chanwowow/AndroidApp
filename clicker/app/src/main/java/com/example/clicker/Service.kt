@@ -93,7 +93,7 @@ class Service : Service() {
             PixelFormat.TRANSLUCENT)
 
         // 윈도우매니저 설정 및 버튼 표시 add
-        wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         wm.addView(floatingBtn, paramsForFloatingBtn )
 
         floatingBtn.setOnTouchListener(TouchDragListener(paramsForFloatingBtn,startDragDistance,
@@ -117,7 +117,6 @@ class Service : Service() {
         }
         isOn = !isOn
         (floatingBtn as TextView).text = if (isOn) "ON" else "OFF"
-
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -131,6 +130,26 @@ class Service : Service() {
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         registerTelephonyCallback(telephonyManager)
         return START_STICKY
+    }
+
+    private fun noSvcTimer(){
+
+        timer = fixedRateTimer(initialDelay = 0,period = 1000) {
+            // 1. 비행기모드 설정 열고
+            val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
+            intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            //startActivity(intentAirplane)
+
+            // 2. 터치 액션 실행
+            floatingBtn.getLocationOnScreen(xyLocation)
+            CLKSVC?.clickAction(
+                xyLocation[0] + floatingBtn.right + 10,
+                xyLocation[1] + floatingBtn.bottom + 10)
+
+
+            //3. 1초 후 비행기모드 설정 닫기
+
+        }
     }
 
     // 이 부분 reuse 방법 생각해보자
@@ -166,12 +185,12 @@ class Service : Service() {
             })
 
     }
-
+    // Telephony Part
     private fun networkTypeChecker(): String {
 
         val networkType : Int = if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
         ) return "Needs Permission"
-          // -> 권한 이미 얻었다면 아래 쭉 실행한다.
+        // -> 권한 이미 얻었다면 아래 쭉 실행한다.
         else   telephonyManager.dataNetworkType
 
         // 위에서 읽은 NW 타입을 Str으로 변환 반환
@@ -191,26 +210,6 @@ class Service : Service() {
         }
     }
 
-    private fun noSvcTimer(){
-
-        timer = fixedRateTimer(initialDelay = 0,period = 1000) {
-            // 1. 비행기모드 설정 열고
-            val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
-            intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            //startActivity(intentAirplane)
-
-            // 2. 터치 액션 실행
-            floatingBtn.getLocationOnScreen(xyLocation)
-            CLKSVC?.clickAction(
-                xyLocation[0] + floatingBtn.right + 10,
-                xyLocation[1] + floatingBtn.bottom + 10)
-
-
-            //3. 1초 후 비행기모드 설정 닫기
-
-        }
-    }
-
     // 이거 필요없을수도 있다.
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -227,9 +226,8 @@ class Service : Service() {
         super.onDestroy()
         "FloatingClickService onDestroy".logd()
         timer?.cancel()
-        // 테스트용 출력 메세지
-        Toast.makeText(applicationContext, "Service onDestroy()", Toast.LENGTH_SHORT).show()
-        //manager.removeView(view)
+        wm.removeView(floatingBtn)
+        wm.removeView(infoView)
     }
 
 }
