@@ -16,6 +16,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
 import android.provider.Settings
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
@@ -58,6 +60,11 @@ class Service : Service() {
     private lateinit var telephonyManager: TelephonyManager
     private var timer: Timer? = null
     private var cnt =0
+
+    // For Screen Wake Lock
+    private lateinit var powerManager: PowerManager
+    private lateinit var wakeLock : WakeLock
+    ////
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -104,14 +111,24 @@ class Service : Service() {
 //            view.performClick()
 //            false
 //        }   => 0421  뭐 이런거로 현재 레이어 터치를 무시하면 다음레이어로 넘어간다나? 근데 동작 안하는데?
+
+        // Screen Wake Lock
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "Clicker::WakeLock><")
+        ///
     }
 
     private var isOn =false
     private fun viewOnClick() {
         if (isOn) {
+
+            wakeLock.release() // WakeLock OFF
+
             wm.removeView(infoView)
             timer?.cancel()
         } else {
+            wakeLock.acquire() // WakeLock ON
+
             wm.addView(infoView, paramsForInfo)
             noSvcTimer()
         }
@@ -123,12 +140,10 @@ class Service : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        // 테스트용 출력 메세지
-        Toast.makeText(applicationContext, "Service onStartCommand()", Toast.LENGTH_SHORT).show()
-
         // Telephony 내용
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         registerTelephonyCallback(telephonyManager)
+
         return START_STICKY
     }
 
