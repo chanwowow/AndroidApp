@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.KeyEventDispatcher
 import androidx.core.view.KeyEventDispatcher.dispatchKeyEvent
 import androidx.core.view.ViewCompat.OnUnhandledKeyEventListenerCompat
+import androidx.core.view.isVisible
 import java.security.Key
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -107,10 +108,10 @@ class Service : Service() {
             {viewOnClick()},
             {wm.updateViewLayout(floatingBtn,paramsForFloatingBtn)}))
 
-//        infoView.setOnTouchListener{ view, event ->
-//            view.performClick()
-//            false
-//        }   => 0421  뭐 이런거로 현재 레이어 터치를 무시하면 다음레이어로 넘어간다나? 근데 동작 안하는데?
+//        floatingBtn.setOnLongClickListener{
+//            //
+//        }
+
 
         // Screen Wake Lock
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -121,7 +122,6 @@ class Service : Service() {
     private var isOn =false
     private fun viewOnClick() {
         if (isOn) {
-
             wakeLock.release() // WakeLock OFF
 
             wm.removeView(infoView)
@@ -147,22 +147,25 @@ class Service : Service() {
         return START_STICKY
     }
 
+    @SuppressLint("RestrictedApi")
     private fun noSvcTimer(){
 
         timer = fixedRateTimer(initialDelay = 0,period = 1000) {
             // 1. 비행기모드 설정 열고
             val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
             intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            //startActivity(intentAirplane)
+            startActivity(intentAirplane)
 
             // 2. 터치 액션 실행
             floatingBtn.getLocationOnScreen(xyLocation)
             CLKSVC?.clickAction(
-                xyLocation[0] + floatingBtn.right + 10,
-                xyLocation[1] + floatingBtn.bottom + 10)
+                xyLocation[0] + floatingBtn.right +10,
+                xyLocation[1] + floatingBtn.bottom +10)
 
 
-            //3. 1초 후 비행기모드 설정 닫기
+            //3. 2초 후 비행기모드 설정 닫기
+            Thread.sleep(2000)
+            CLKSVC?.backPress()
 
         }
     }

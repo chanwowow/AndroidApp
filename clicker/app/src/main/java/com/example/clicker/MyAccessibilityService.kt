@@ -1,5 +1,6 @@
 package com.example.clicker
 
+import android.accessibilityservice.AccessibilityGestureEvent
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.accessibilityservice.GestureDescription
@@ -17,6 +18,7 @@ import android.telephony.TelephonyManager
 import android.util.Log
 
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 
@@ -24,20 +26,17 @@ import androidx.annotation.RequiresApi
 var CLKSVC : MyAccessibilityService? = null // 이게 객체를 생성하는 부분인가? 역할이 뭘까
 
 class MyAccessibilityService : AccessibilityService() {
+
     override fun onInterrupt() {
         // 뭔가 잘못될때
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        //  nothin
+        "Event type: ${event.eventType} Package name: ${event.packageName}".logd()
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-
-        val info = AccessibilityServiceInfo()
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
-        serviceInfo = info
 
         CLKSVC = this
         startActivity(Intent(this, MainActivity::class.java)
@@ -53,6 +52,15 @@ class MyAccessibilityService : AccessibilityService() {
             .build()
         dispatchGesture(gestureDescription, null, null)
         "dispatchGesture() $x, $y ".logd()
+    }
+
+    fun backPress(){
+        performGlobalAction(GLOBAL_ACTION_BACK)
+    }
+
+    override fun onGesture(gestureEvent: AccessibilityGestureEvent): Boolean {
+        "onGesture Catch!".logd()
+        return true
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
