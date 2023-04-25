@@ -5,6 +5,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.*
 import android.app.Service
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,6 +20,8 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
 import android.provider.Settings
+import android.telecom.TelecomManager
+import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
@@ -59,6 +62,7 @@ class Service : Service() {
     private val xyLocation = IntArray(2)
 
     private lateinit var telephonyManager: TelephonyManager
+    private var networkStateStr = "NO SVC"
     private var timer: Timer? = null
     private var cnt =0
 
@@ -66,7 +70,6 @@ class Service : Service() {
     private lateinit var powerManager: PowerManager
     private lateinit var wakeLock : WakeLock
     ////
-
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
@@ -117,20 +120,27 @@ class Service : Service() {
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "Clicker::WakeLock><")
         ///
+
     }
 
     private var isOn =false
     private fun viewOnClick() {
-        if (isOn) {
-            wakeLock.release() // WakeLock OFF
-
-            wm.removeView(infoView)
-            timer?.cancel()
-        } else {
+        if (!isOn) {
+            wm.addView(infoView, paramsForInfo)
             wakeLock.acquire() // WakeLock ON
 
-            wm.addView(infoView, paramsForInfo)
-            noSvcTimer()
+            "Timer run".logd()
+            timer = fixedRateTimer(initialDelay = 200,
+                period = 30000){
+                "Timer run".logd()
+                if(networkStateStr=="NO SVC"){
+                    noSvcHandler()
+                }
+            }
+        } else {
+            wakeLock.release() // WakeLock OFF
+            wm.removeView(infoView)
+            timer?.cancel()
         }
         isOn = !isOn
         (floatingBtn as TextView).text = if (isOn) "ON" else "OFF"
@@ -147,27 +157,52 @@ class Service : Service() {
         return START_STICKY
     }
 
+
     @SuppressLint("RestrictedApi")
-    private fun noSvcTimer(){
+    private fun noSvcHandler(){
+        Thread.sleep(500)
 
-        timer = fixedRateTimer(initialDelay = 0,period = 1000) {
-            // 1. 비행기모드 설정 열고
-            val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
-            intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intentAirplane)
+        // 1. 비행기모드 설정 열고
+        val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
+        intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intentAirplane)
 
-            // 2. 터치 액션 실행
-            floatingBtn.getLocationOnScreen(xyLocation)
-            CLKSVC?.clickAction(
-                xyLocation[0] + floatingBtn.right +10,
-                xyLocation[1] + floatingBtn.bottom +10)
+        Thread.sleep(500)
+
+        // 2. 터치 액션 실행
+        floatingBtn.getLocationOnScreen(xyLocation)
+        CLKSVC?.clickAction(
+            xyLocation[0] + floatingBtn.right +10,
+            xyLocation[1] + floatingBtn.bottom -50)
+
+        // 비행기모드 켜졌는지 확인
+        var isAirplaneModeOn = Settings.Global.getInt(
+            this@Service.contentResolver,
+            Settings.Global.AIRPLANE_MODE_ON,
+            0
+        ) != 0
 
 
-            //3. 2초 후 비행기모드 설정 닫기
-            Thread.sleep(2000)
-            CLKSVC?.backPress()
-
+        // 진짜 켜지면 빠져나옴
+        while(!isAirplaneModeOn){
+            Thread.sleep(1000)
+            isAirplaneModeOn = Settings.Global.getInt(
+                this@Service.contentResolver,
+                Settings.Global.AIRPLANE_MODE_ON,
+                0
+            ) != 0
         }
+
+        Thread.sleep(1000)
+
+        //3. 2초 후 비행기모드 끄고 설정화면 닫기
+        floatingBtn.getLocationOnScreen(xyLocation)
+        CLKSVC?.clickAction(
+            xyLocation[0] + floatingBtn.right +10,
+            xyLocation[1] + floatingBtn.bottom -50)
+        Thread.sleep(200)
+
+        CLKSVC?.backPress()
     }
 
     // 이 부분 reuse 방법 생각해보자
@@ -178,27 +213,27 @@ class Service : Service() {
             object : TelephonyCallback(), TelephonyCallback.ServiceStateListener {
                 @SuppressLint("SuspiciousIndentation")
                 override fun onServiceStateChanged(serviceState: ServiceState) {
-                    val stateStr :String
+
                     when (serviceState.state) {
                         ServiceState.STATE_IN_SERVICE->{
-                            stateStr= "IN SVC ..."
+                            networkStateStr= "IN SVC!"
                             //outOfServiceTime=null
                         }
                         ServiceState.STATE_OUT_OF_SERVICE->{
-                            stateStr = "OUT OF SVC"
+                            networkStateStr = "NO SVC"
                         }
                         ServiceState.STATE_EMERGENCY_ONLY-> {
-                            stateStr = "EMERGENCY ONLY"
+                            networkStateStr = "EMERGENCY ONLY"
                             //outOfServiceTime=null
                         }
                         ServiceState.STATE_POWER_OFF->{
-                            stateStr="비행기모드 상태"
+                            networkStateStr="비행기모드 상태"
                         }
                         else->{
-                            stateStr="INSERT SIM"
+                            networkStateStr="INSERT SIM"
                         }
                     }
-                    statusText.text =networkTypeChecker() + "\n\n" + stateStr + cnt++
+                    statusText.text =networkTypeChecker() + "\n\n" + networkStateStr + cnt++
                 }
             })
 
