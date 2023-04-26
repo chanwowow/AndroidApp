@@ -144,11 +144,9 @@ class Service : Service() {
                     noSvcHandler()
                 }
             }
-        } else {
-            wakeLock.release() // WakeLock OFF
-            wm.removeView(infoView)
-            timer?.cancel()
-        }
+        } else
+            clearAndStopInfo()
+
         isOn = !isOn
         (floatingBtn as TextView).text = if (isOn) "ON" else "OFF"
     }
@@ -279,12 +277,18 @@ class Service : Service() {
         wm.updateViewLayout(floatingBtn, paramsForFloatingBtn)
     }
 
+    private fun clearAndStopInfo(){
+        wakeLock.release() // WakeLock OFF
+        wm.removeView(infoView)
+        timer?.cancel()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         "FloatingClickService onDestroy".logd()
         timer?.cancel()
         wm.removeView(floatingBtn)
-        // 이미 지워진 view (info view)를 여기서 또 호출하면 에러난다.
+        if(isOn) clearAndStopInfo()
+        // 이미 지워진 view (info view)를 여기서 또 호출하면 에러난다 주의
     }
-
 }
