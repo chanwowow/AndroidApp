@@ -38,6 +38,7 @@ import com.example.clicker.MyAccessibilityService
 class MainActivity : AppCompatActivity() {
 
     private lateinit var startButton: Button
+    private lateinit var stopButton : Button
     private lateinit var airplaneButton : Button
 
     private var serviceIntent: Intent? = null
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS))
         }
 
-        startButton = findViewById (R.id.allowPermission)
+        startButton = findViewById (R.id.startButtonMain)
         startButton.setOnClickListener {
             // 1. 오버레이 권한이 있으면 아래 실행
             if(Settings.canDrawOverlays(this)){
@@ -65,6 +66,11 @@ class MainActivity : AppCompatActivity() {
             else{
                 permissionCheckRequest()
             }
+        }
+
+        stopButton=findViewById(R.id.stopButtonMain)
+        stopButton.setOnClickListener {
+            stopService(serviceIntent)
         }
     }
 

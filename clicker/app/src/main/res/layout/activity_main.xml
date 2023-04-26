@@ -7,15 +7,28 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/allowPermission"
+        android:id="@+id/startButtonMain"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="START Service"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.405"/>
+        app:layout_constraintVertical_bias="0.253" />
+
+    <Button
+        android:id="@+id/stopButtonMain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="STOP Service"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.351" />
 
     <Button
         android:id="@+id/airplaneModeSet"

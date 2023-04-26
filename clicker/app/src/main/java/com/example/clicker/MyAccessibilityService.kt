@@ -73,5 +73,31 @@ class MyAccessibilityService : AccessibilityService() {
         super.onDestroy()
         //on Destroy
     }
+
+//    fun expandStatusBar() {
+//        val handler = Handler(Looper.getMainLooper())
+//        val path = Path()
+//        val displayMetrics = resources.displayMetrics
+//        val x = displayMetrics.widthPixels / 2f
+//        val startY = 0f
+//        val endY = displayMetrics.heightPixels / 5f
+//        path.moveTo(x, startY)
+//        path.lineTo(x, endY)
+//        val gestureBuilder = GestureDescription.Builder()
+//        gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 0L, 200L))
+//        val gesture = gestureBuilder.build()
+//        dispatchGesture(gesture, object : GestureResultCallback() {
+//            override fun onCompleted(gestureDescription: GestureDescription) {
+//                super.onCompleted(gestureDescription)
+//                handler.postDelayed({
+//                    val rootNode = rootInActiveWindow
+//                    val notificationPanelView = findNotificationPanelView(rootNode)
+//                    notificationPanelView?.performAction(AccessibilityNodeInfo.ACTION_EXPAND)
+//                }, 300L)
+//            }
+//        }, null)
+//    }
+
+
 }
 

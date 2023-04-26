@@ -50,8 +50,8 @@ class Service : Service() {
 
     private lateinit var wm : WindowManager
     private lateinit var statusText : TextView
-    private lateinit var floatingBtn: View
     private lateinit var infoView: View
+    private lateinit var floatingBtn: View
 
     private lateinit var paramsForInfo : WindowManager.LayoutParams
     private lateinit var paramsForFloatingBtn : WindowManager.LayoutParams
@@ -70,6 +70,7 @@ class Service : Service() {
     private lateinit var powerManager: PowerManager
     private lateinit var wakeLock : WakeLock
     ////
+
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
@@ -111,6 +112,7 @@ class Service : Service() {
             {viewOnClick()},
             {wm.updateViewLayout(floatingBtn,paramsForFloatingBtn)}))
 
+
 //        floatingBtn.setOnLongClickListener{
 //            //
 //        }
@@ -120,6 +122,11 @@ class Service : Service() {
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "Clicker::WakeLock><")
         ///
+
+
+        // Telephony 내용
+        telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        registerTelephonyCallback(telephonyManager)
 
     }
 
@@ -150,10 +157,6 @@ class Service : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        // Telephony 내용
-        telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        registerTelephonyCallback(telephonyManager)
-
         return START_STICKY
     }
 
@@ -166,6 +169,7 @@ class Service : Service() {
         val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
         intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intentAirplane)
+
 
         Thread.sleep(500)
 
@@ -280,7 +284,7 @@ class Service : Service() {
         "FloatingClickService onDestroy".logd()
         timer?.cancel()
         wm.removeView(floatingBtn)
-        wm.removeView(infoView)
+        // 이미 지워진 view (info view)를 여기서 또 호출하면 에러난다.
     }
 
 }
