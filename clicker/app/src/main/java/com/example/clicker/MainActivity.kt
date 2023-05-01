@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Switch
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -23,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var startButton: Button
     private lateinit var stopButton : Button
     private lateinit var airplaneButton : Button
+    private lateinit var switchButton : Switch
+    private var autoAns = false
 
     private var serviceIntent: Intent? = null
 
@@ -37,8 +40,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS))
         }
 
-
-
         startButton = findViewById (R.id.startButtonMain)
         startButton.setOnClickListener {
             val inputPeriod = findViewById<EditText>(R.id.inputPeriod)
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity() {
             if(Settings.canDrawOverlays(this)){
                 serviceIntent = Intent(this@MainActivity, Service::class.java)
                 serviceIntent!!.putExtra("period",period )
+                serviceIntent!!.putExtra("AutoAnswer", autoAns)
 
                 startService(serviceIntent)
                 onBackPressed()
@@ -61,6 +63,11 @@ class MainActivity : AppCompatActivity() {
         stopButton=findViewById(R.id.stopButtonMain)
         stopButton.setOnClickListener {
             stopService(serviceIntent)
+        }
+
+        switchButton = findViewById(R.id.switch1)
+        switchButton.setOnCheckedChangeListener { buttonView, isChecked ->
+            autoAns = isChecked
         }
     }
 
@@ -87,7 +94,6 @@ class MainActivity : AppCompatActivity() {
             // 접근성 권한설정
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
-
     }
 
     override fun onStop() {

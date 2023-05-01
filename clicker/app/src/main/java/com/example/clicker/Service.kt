@@ -45,6 +45,7 @@ class Service : Service() {
     private var checkTimer: Timer? = null
     private var cnt =0
     var period : Int = 30
+    var autoAns : Boolean = false
 
     // For Screen Wake Lock
     private lateinit var powerManager: PowerManager
@@ -102,11 +103,14 @@ class Service : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        if(intent != null) period  = intent.getIntExtra("period", 30)
-
+        if(intent != null) {
+            period  = intent.getIntExtra("period", 30)
+            autoAns = intent.getBooleanExtra("AutoAnswer", false)
+        }
         Tel = MyTelephony(this) // Telephony 객체 생성
-        //Tel.registerTelephonyCallback()  // Callback 사용시
-        Tel.registerAutoAnswer()
+        if(autoAns)
+            Tel.registerAutoAnswer()
+        //Tel.registerTelephonyCallback()  // Callback 방식사용시
 
         checkTimer = fixedRateTimer(initialDelay = 200,
             period = 3000){
@@ -186,6 +190,7 @@ class Service : Service() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun clearAndStopInfo() {
         wakeLock.release() // WakeLock OFF
         wm.removeView(infoView)
@@ -202,8 +207,7 @@ class Service : Service() {
 
         // ON 상태인 경우에는 다른것도 함께 지움
         if(isOn) clearAndStopInfo()
-
-
-        //Tel.unRegisterTelephonyCallback() // Callback 사용시
+        Tel.unRegisterAutoAnswer()
+        //Tel.unRegisterTelephonyCallback() // Callback 방식 사용시
     }
 }
