@@ -1,38 +1,21 @@
 package com.example.clicker
 
-import android.accessibilityservice.AccessibilityService
+import android.Manifest
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.accessibilityservice.GestureDescription
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.Path
-import android.graphics.PixelFormat
-import android.graphics.PointF
 import android.net.Uri
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.IBinder
-import android.os.PersistableBundle
 import android.provider.Settings
 import android.util.Log
-import android.view.Gravity
-import android.view.View
-import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.Manifest
-
-import com.example.clicker.MyAccessibilityService
 
 
 class MainActivity : AppCompatActivity() {
@@ -54,11 +37,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS))
         }
 
+
+
         startButton = findViewById (R.id.startButtonMain)
         startButton.setOnClickListener {
+            val inputPeriod = findViewById<EditText>(R.id.inputPeriod)
+            var period = Integer.parseInt(inputPeriod.text.toString())
+
             // 1. 오버레이 권한이 있으면 아래 실행
             if(Settings.canDrawOverlays(this)){
                 serviceIntent = Intent(this@MainActivity, Service::class.java)
+                serviceIntent!!.putExtra("period",period )
+
                 startService(serviceIntent)
                 onBackPressed()
             }
@@ -120,10 +110,20 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
         }
         // 2. 휴대폰 상태 읽기 권한 신청
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
+        if(ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
             Toast.makeText(this, "Phone Read Permission is required", Toast.LENGTH_SHORT).show()
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 123)
         }
+        // 3. 전화 자동응답 권한 신청
+        if(ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ANSWER_PHONE_CALLS)!= PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Call Answer Permission is required", Toast.LENGTH_SHORT).show()
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ANSWER_PHONE_CALLS), 124)
+        }
+
     }
 
     override fun onBackPressed() {
