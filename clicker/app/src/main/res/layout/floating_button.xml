@@ -4,7 +4,7 @@
     android:id="@+id/floating_button"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#40FFEB3B"
+    android:background="#75673AB7"
     android:fontFamily="sans-serif-medium"
     android:paddingLeft="16dp"
     android:paddingTop="8dp"

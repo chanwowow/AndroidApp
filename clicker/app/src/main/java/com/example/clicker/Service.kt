@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isInvisible
 import org.w3c.dom.Text
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -44,8 +45,9 @@ class Service : Service() {
     private var timer: Timer? = null
     private var checkTimer: Timer? = null
     private var cnt =0
-    var period : Int = 30
-    var autoAns : Boolean = false
+    private var period : Int = 30
+    private var autoAns : Boolean = false
+    private var showState : Boolean = false
 
     // For Screen Wake Lock
     private lateinit var powerManager: PowerManager
@@ -92,7 +94,6 @@ class Service : Service() {
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         wm.addView(floatingBtn, paramsForFloatingBtn )
 
-
         floatingBtn.setOnTouchListener(TouchDragListener(paramsForFloatingBtn,startDragDistance,
             {viewOnClick()},
             {wm.updateViewLayout(floatingBtn,paramsForFloatingBtn)}))
@@ -106,12 +107,15 @@ class Service : Service() {
         if(intent != null) {
             period  = intent.getIntExtra("period", 30)
             autoAns = intent.getBooleanExtra("AutoAnswer", false)
+            showState = intent.getBooleanExtra("showState", false)
         }
+
         Tel = MyTelephony(this) // Telephony 객체 생성
         if(autoAns)
             Tel.registerAutoAnswer()
         //Tel.registerTelephonyCallback()  // Callback 방식사용시
 
+        if (!showState) extraText.visibility = View.INVISIBLE
         checkTimer = fixedRateTimer(initialDelay = 200,
             period = 3000){
             networkStateStr = Tel.getState()
@@ -140,7 +144,7 @@ class Service : Service() {
             wakeLock.acquire() // WakeLock ON
 
             timer = fixedRateTimer(initialDelay = 200,
-                period = (period*1000).toLong()
+                period = (period*1000 + 10000).toLong()
             ){
 
                 if(networkStateStr=="NO SVC"){
@@ -161,19 +165,19 @@ class Service : Service() {
         val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
         intentAirplane.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intentAirplane)
-        Thread.sleep(500)
-
-        floatingClick()
+        Thread.sleep(1000)
 
         // 비행기모드 진짜 켜지면 빠져나옴
         var isAirplaneModeOn =false
         while(!isAirplaneModeOn){
+            floatingClick()
+            Thread.sleep(1500)
+
             isAirplaneModeOn = Settings.Global.getInt(
                 this@Service.contentResolver,
                 Settings.Global.AIRPLANE_MODE_ON,
                 0
             ) != 0
-            Thread.sleep(1000)
         }
 
         // 다시 비행기 끄고 빠져나옴

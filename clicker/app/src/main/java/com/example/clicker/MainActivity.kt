@@ -24,8 +24,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var startButton: Button
     private lateinit var stopButton : Button
     private lateinit var airplaneButton : Button
-    private lateinit var switchButton : Switch
+    private lateinit var switchButton1 : Switch
+    private lateinit var switchButton2 : Switch
     private var autoAns = false
+    private var showState = false
 
     private var serviceIntent: Intent? = null
 
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity() {
                 serviceIntent = Intent(this@MainActivity, Service::class.java)
                 serviceIntent!!.putExtra("period",period )
                 serviceIntent!!.putExtra("AutoAnswer", autoAns)
+                serviceIntent!!.putExtra("showState", showState)
 
                 startService(serviceIntent)
                 onBackPressed()
@@ -65,9 +68,13 @@ class MainActivity : AppCompatActivity() {
             stopService(serviceIntent)
         }
 
-        switchButton = findViewById(R.id.switch1)
-        switchButton.setOnCheckedChangeListener { buttonView, isChecked ->
+        switchButton1 = findViewById(R.id.switch1)
+        switchButton1.setOnCheckedChangeListener { buttonView, isChecked ->
             autoAns = isChecked
+        }
+        switchButton2 = findViewById(R.id.switch2)
+        switchButton2.setOnCheckedChangeListener{buttonView, isChecked->
+            showState = isChecked
         }
     }
 
@@ -77,9 +84,8 @@ class MainActivity : AppCompatActivity() {
         val manager = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
         val list = manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
         for (id in list) {
-            if (string == id.id) {
+            if (string == id.id)
                 return true
-            }
         }
         return false
     }
