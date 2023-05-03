@@ -1,29 +1,19 @@
 package com.example.clicker
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.app.*
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.os.*
 import android.os.PowerManager.WakeLock
 import android.provider.Settings
 import android.telephony.*
-import android.telephony.ims.ImsReasonInfo
 import android.view.*
 import android.widget.TextView
-import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import androidx.core.view.isInvisible
-import org.w3c.dom.Text
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
-import kotlin.math.sign
 
 class Service : Service() {
     // 서비스를 실행하고 , 서비스 안에서 accessibility servie 메소드들을 사용하는 방식으로 설계
@@ -98,6 +88,11 @@ class Service : Service() {
             {viewOnClick()},
             {wm.updateViewLayout(floatingBtn,paramsForFloatingBtn)}))
 
+        // Screen Wake Lock (서비스 실행동안 화면꺼짐 방지)  => 얘넨 한번만 실행되어야 할거같은데 버튼누를때마다 생성지양
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "Clicker::WakeLock><")
+        ///
+
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -116,21 +111,6 @@ class Service : Service() {
         //Tel.registerTelephonyCallback()  // Callback 방식사용시
 
         if (!showState) extraText.visibility = View.INVISIBLE
-        checkTimer = fixedRateTimer(initialDelay = 200,
-            period = 3000){
-            networkStateStr = Tel.getState()
-            RAT = Tel.getRAT()
-
-            Handler(Looper.getMainLooper()).post {
-                statusText.text = RAT +"\n\n" + networkStateStr + cnt++
-                extraText.text = Tel.getSomething()
-            }
-        }
-
-        // Screen Wake Lock (서비스 실행동안 화면꺼짐 방지)
-        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "Clicker::WakeLock><")
-        ///
 
         return START_STICKY
     }
@@ -143,11 +123,22 @@ class Service : Service() {
             wm.addView(infoView, paramsForInfo)
             wakeLock.acquire() // WakeLock ON
 
+            checkTimer = fixedRateTimer(initialDelay = 200,
+                period = 3000){
+                networkStateStr = Tel.getState()
+                RAT = Tel.getRAT()
+
+                Handler(Looper.getMainLooper()).post {
+                    statusText.text = RAT +"\n\n" + networkStateStr + cnt++
+                    extraText.text = Tel.getSomething()
+                }
+            }
+
             timer = fixedRateTimer(initialDelay = 200,
                 period = (period*1000 + 10000).toLong()
             ){
 
-                if(networkStateStr=="NO SVC"){
+                if(networkStateStr=="NO SVC... "){
                     noSvcHandler()
                 }
             }
@@ -158,8 +149,6 @@ class Service : Service() {
         (floatingBtn as TextView).text = if (isOn) "ON" else "OFF"
     }
 
-
-    @SuppressLint("RestrictedApi")
     private fun noSvcHandler(){
         // 1. 비행기모드 설정 열고
         val intentAirplane = Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
@@ -169,7 +158,7 @@ class Service : Service() {
 
         // 비행기모드 진짜 켜지면 빠져나옴
         var isAirplaneModeOn =false
-        while(!isAirplaneModeOn){
+        while(!isAirplaneModeOn && isOn){
             floatingClick()
             Thread.sleep(1500)
 
@@ -193,8 +182,6 @@ class Service : Service() {
             xyLocation[1] + floatingBtn.bottom -50)
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun clearAndStopInfo() {
         wakeLock.release() // WakeLock OFF
         wm.removeView(infoView)
@@ -202,16 +189,20 @@ class Service : Service() {
         checkTimer?.cancel()
     }
 
-
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onDestroy() {
         super.onDestroy()
-        "FloatingClickService onDestroy".logd()
         wm.removeView(floatingBtn)
 
         // ON 상태인 경우에는 다른것도 함께 지움
-        if(isOn) clearAndStopInfo()
-        Tel.unRegisterAutoAnswer()
+        if(isOn) {
+            clearAndStopInfo()
+            isOn=false
+        }
+        if(autoAns){
+            Tel.unRegisterAutoAnswer()
+            autoAns = false
+        }
         //Tel.unRegisterTelephonyCallback() // Callback 방식 사용시
     }
 }

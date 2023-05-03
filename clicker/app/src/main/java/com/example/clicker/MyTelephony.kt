@@ -42,11 +42,11 @@ class MyTelephony(context:Context) {
         svcTemp = serviceState.toString()
 
         return when (serviceState!!.state) {
-            ServiceState.STATE_IN_SERVICE -> "IN SVC  "
-            ServiceState.STATE_OUT_OF_SERVICE -> "NO SVC...  "
-            ServiceState.STATE_EMERGENCY_ONLY -> "EMERGENCY ONLY  "
-            ServiceState.STATE_POWER_OFF -> "AirplaneMode  "
-            else -> "INSERT SIM  "
+            ServiceState.STATE_IN_SERVICE -> "IN SVC "
+            ServiceState.STATE_OUT_OF_SERVICE -> "NO SVC... "
+            ServiceState.STATE_EMERGENCY_ONLY -> "EMERGENCY ONLY "
+            ServiceState.STATE_POWER_OFF -> "AirplaneMode "
+            else -> "INSERT SIM "
         }
     }
 
