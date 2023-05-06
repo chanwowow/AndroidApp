@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             // 1-1. 오버레이 권한 체크 후 실행
             if(Settings.canDrawOverlays(this)) {
                 startForegroundService(serviceIntent)
-                onBackPressed()
+                moveTaskToBack(true)
             }
             else{
                 permissionCheckRequest()
