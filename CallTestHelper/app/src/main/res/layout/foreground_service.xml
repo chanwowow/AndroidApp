@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/RATinfoText"
+        android:layout_width="80dp"
+        android:layout_height="55dp"
+        android:background="#4100BCD4"
+        android:text="▪ RAT Info :\n\n▪ Status     :"
+        android:textColor="@color/black"
+        android:textSize="13dp"
+        android:textStyle="bold"
+        android:paddingLeft="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.04"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.02" />
+
+    <TextView
+        android:id="@+id/stateText"
+        android:layout_width="130dp"
+        android:layout_height="55dp"
+        android:background="#318BC34A"
+        android:textColor="@color/black"
+        android:textSize="13dp"
+        android:textStyle="bold|italic"
+        android:paddingLeft="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/RATinfoText"
+        app:layout_constraintTop_toTopOf="@+id/RATinfoText"
+        app:layout_constraintVertical_bias="0.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

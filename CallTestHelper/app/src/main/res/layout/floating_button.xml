@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/floating_button"
+    android:layout_width="100dp"
+    android:layout_height="42dp"
+    android:background="@drawable/floatingframe"
+    android:fontFamily="sans-serif-medium"
+    android:paddingLeft="16dp"
+    android:paddingTop="10dp"
+    android:paddingRight="18dp"
+    android:paddingBottom="4dp"
+    android:text="OFF"
+    android:textAlignment="viewEnd"
+    android:textColor="#000000"
+    android:textSize="15dp" />
