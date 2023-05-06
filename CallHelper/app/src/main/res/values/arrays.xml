@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="rat_list">
+        <item>Legacy</item>
+        <item>NR (NSA)</item>
+        <item>NR (SA)</item>
+    </string-array>
+</resources>
