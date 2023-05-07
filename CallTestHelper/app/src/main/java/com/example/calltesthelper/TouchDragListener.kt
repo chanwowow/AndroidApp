@@ -1,7 +1,9 @@
 package com.example.calltesthelper
 
 import android.annotation.SuppressLint
+import android.app.Service
 import android.content.Context
+import android.os.Handler
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -12,20 +14,25 @@ fun Context.dp2px(dpValue: Float): Int {
     return (dpValue * scale + 0.5f).toInt()
 }
 
-class TouchDragListener(private val params: WindowManager.LayoutParams,
+class TouchDragListener(private val service : Service,
+                        private val params: WindowManager.LayoutParams,
                         private val startDragDistance: Int = 10,
                         private val onTouch: Action?,
                         private val onDrag: Action?) : View.OnTouchListener {
+
     private var initialX: Int = 0
     private var initialY: Int = 0
     private var initialTouchX: Float = 0.toFloat()
     private var initialTouchY: Float = 0.toFloat()
     private var isDrag = false
+    private var startTime = 0L
+    private val handler = Handler()
 
-    private fun isDragging(event: MotionEvent): Boolean =
-        ((Math.pow((event.rawX - initialTouchX).toDouble(), 2.0)
-                + Math.pow((event.rawY - initialTouchY).toDouble(), 2.0))
-                > startDragDistance * startDragDistance)
+    private fun isDragging(event: MotionEvent): Boolean {
+        val deltaX = event.rawX - initialTouchX
+        val deltaY = event.rawY - initialTouchY
+        return (deltaX * deltaX + deltaY * deltaY) > (startDragDistance * startDragDistance)
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -36,7 +43,9 @@ class TouchDragListener(private val params: WindowManager.LayoutParams,
                 initialY = params.y
                 initialTouchX = event.rawX
                 initialTouchY = event.rawY
-                return true
+                startTime = System.currentTimeMillis()
+                handler.postDelayed({ service.stopSelf() }, 2000)
+                return false
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -44,6 +53,11 @@ class TouchDragListener(private val params: WindowManager.LayoutParams,
                     isDrag = true
                 }
                 if (!isDrag) return true
+
+                val elapsedTime = System.currentTimeMillis() - startTime
+                if (elapsedTime <= 2000)
+                    handler.removeCallbacksAndMessages(null)
+
                 params.x = initialX + (event.rawX - initialTouchX).toInt()
                 params.y = initialY + (event.rawY - initialTouchY).toInt()
                 onDrag?.invoke()
@@ -51,7 +65,9 @@ class TouchDragListener(private val params: WindowManager.LayoutParams,
             }
 
             MotionEvent.ACTION_UP -> {
-                if (!isDrag) {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                if (!isDrag && elapsedTime <= 2000) {
+                    handler.removeCallbacksAndMessages(null)
                     onTouch?.invoke()
                     return true
                 }

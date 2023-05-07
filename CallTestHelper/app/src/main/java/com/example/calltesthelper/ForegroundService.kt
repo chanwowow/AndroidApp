@@ -54,6 +54,7 @@ class ForegroundService : Service() {
 
     //3. 기타 설정
     private lateinit var wakeLock : WakeLock
+    private var isOn =false
 
     override fun onCreate() {
         super.onCreate()
@@ -82,7 +83,9 @@ class ForegroundService : Service() {
         // 3. 기타 설정
         // 플로팅 버튼 터치 리스너 등록
         startDragDistance = dp2px(10f)
-        floatingBtn.setOnTouchListener(TouchDragListener(floatingBtnViewParams,startDragDistance,
+        floatingBtn.setOnTouchListener(
+            TouchDragListener(this,
+            floatingBtnViewParams,startDragDistance,
             {viewOnClick()}, {overlay.updateViewLayout(floatingBtn,floatingBtnViewParams)}))
 
         // Screen Wake Lock (서비스 실행 중 화면꺼짐 방지)
@@ -110,12 +113,12 @@ class ForegroundService : Service() {
             .build()
         startForeground(1, notification)
 
-        // 2. intent 확인
+        // 2. intent 값 복사
         ratType = intent?.getStringExtra("RAT")!!
-        period = intent?.getIntExtra("Period", 30)!!
+        period = intent.getIntExtra("Period", 30)
 
-        val autoAns = intent?.getBooleanExtra("AutoAnswer", false )
-        callCheckTimer = if (autoAns == true){
+        val autoAns = intent.getBooleanExtra("AutoAnswer", false )
+        callCheckTimer = if (autoAns){
             fixedRateTimer(period = 3000){
                 telephony.callCheckAndTake()
             }
@@ -124,7 +127,6 @@ class ForegroundService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private var isOn =false
     private fun viewOnClick() {
         if (!isOn) {
             overlay.addView(networkInfoView,infoViewParams)
