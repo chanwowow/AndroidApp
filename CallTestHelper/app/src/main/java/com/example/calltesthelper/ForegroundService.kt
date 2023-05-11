@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.IBinder
@@ -18,6 +19,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -149,6 +151,7 @@ class ForegroundService : Service() {
 
         isOn = !isOn
         (floatingBtn as TextView).text = if (isOn) "ON " else "OFF"
+        (floatingBtn as TextView).setTextColor( if (isOn) Color.CYAN else Color.GRAY )
     }
 
     private fun legacyRatRoutine(){
@@ -218,9 +221,16 @@ class ForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        showToastInService("Call Test Helper is terminated!")
         super.onDestroy()
         overlay.removeView(floatingBtn)
         if(isOn) clearAndStopService()
+    }
+
+    private fun showToastInService(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onBind(intent: Intent): IBinder? {

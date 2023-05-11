@@ -3,6 +3,7 @@ package com.example.calltesthelper
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
+import android.content.Intent
 import android.os.Handler
 import android.view.MotionEvent
 import android.view.View
@@ -14,7 +15,7 @@ fun Context.dp2px(dpValue: Float): Int {
     return (dpValue * scale + 0.5f).toInt()
 }
 
-class TouchDragListener(private val service : Service,
+class TouchDragListener(private val context: Context,
                         private val params: WindowManager.LayoutParams,
                         private val startDragDistance: Int = 10,
                         private val onTouch: Action?,
@@ -44,7 +45,7 @@ class TouchDragListener(private val service : Service,
                 initialTouchX = event.rawX
                 initialTouchY = event.rawY
                 startTime = System.currentTimeMillis()
-                handler.postDelayed({ service.stopSelf() }, 2000)
+                handler.postDelayed({ stopService() }, 2000)
                 return false
             }
 
@@ -74,5 +75,10 @@ class TouchDragListener(private val service : Service,
             }
         }
         return false
+    }
+
+    private fun stopService() {
+        val serviceIntent = Intent(context, ForegroundService::class.java)
+        context.stopService(serviceIntent)
     }
 }
