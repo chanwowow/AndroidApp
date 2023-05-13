@@ -1,10 +1,10 @@
 package com.example.networkchecktotal
 
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
@@ -30,9 +30,26 @@ class MainActivity : AppCompatActivity() {
 
     fun readNetworkStatus() : String{
         myTelephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        var str = myTelephonyManager?.signalStrength
+        if (myTelephonyManager == null) return "INSERT SIM"
 
-        return str.toString()
+        val allRatSignal = myTelephonyManager?.signalStrength
+        val activeSignalList = allRatSignal?.getCellSignalStrengths()
+
+        var returnStr = " "
+        if (activeSignalList != null){
+            for (rat in activeSignalList){
+                when (rat.toString().getOrNull(18)){
+                    'G' -> returnStr += "GSM :"
+                    'W' -> returnStr += "WCDMA :"
+                    'L' -> returnStr += "LTE :"
+                    'N' -> returnStr += "NR :"
+                    else -> returnStr += "etc :"
+                }
+                returnStr += "[RSRP : " + rat.dbm.toString() + "dBm] \n\n" // 일단 그 신호 세기 알려주긴 함.
+            }
+        }
+
+        return returnStr
     }
 
     override fun onDestroy() {
