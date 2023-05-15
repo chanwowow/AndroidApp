@@ -166,7 +166,11 @@ class ForegroundService : Service() {
     }
     private fun NSARoutine(){
         svcCheckTimer = fixedRateTimer(period = 3000){
-            // NSA모드 RRC Connection 감지할 수 있는 방법을 찾아보자
+            RATStr = "NR (NSA)"
+            svcStateStr = if (telephony.checkEndc()) "IN Service" else "NO Service"
+            Handler(Looper.getMainLooper()).post {
+                svcStateView.text = RATStr + "\n\n" + svcStateStr
+            }
         }
     }
     private fun SARoutine(){

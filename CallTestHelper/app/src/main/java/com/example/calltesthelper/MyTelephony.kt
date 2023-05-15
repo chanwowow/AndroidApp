@@ -75,6 +75,21 @@ class MyTelephony(context : Context) {
         }
     }
 
+    fun checkEndc() : Boolean{
+        var checker : Boolean = false
+        val allRatSignal = myTelephonyManager?.signalStrength
+        val activeSignalList = allRatSignal?.getCellSignalStrengths()
+
+        if (activeSignalList != null){
+            for (rat in activeSignalList){
+                when (rat.toString().getOrNull(18)){
+                    'N' -> checker = true
+                }
+            }
+        }
+        return checker
+    }
+
 //    fun getNrState() : String{
 //        val cellInfoList =
 //            if (ActivityCompat.checkSelfPermission(
