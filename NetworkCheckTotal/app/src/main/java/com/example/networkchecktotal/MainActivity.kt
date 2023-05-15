@@ -2,6 +2,7 @@ package com.example.networkchecktotal
 
 import android.content.Context
 import android.os.Bundle
+import android.telephony.SignalStrength
 import android.telephony.TelephonyManager
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -10,8 +11,8 @@ import kotlin.concurrent.fixedRateTimer
 
 class MainActivity : AppCompatActivity() {
 
-    var myTelephonyManager : TelephonyManager? = null
-    var timer : Timer? = null
+    private var myTelephonyManager : TelephonyManager? = null
+    private var timer : Timer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         myTelephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val textOutput = findViewById<TextView>(R.id.textView1)
 
-        timer = fixedRateTimer(period = 3000){
+        timer = fixedRateTimer(period = 1000){
             runOnUiThread{
                 textOutput.text = readNetworkStatus()
             }
@@ -29,14 +30,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun readNetworkStatus() : String{
-        myTelephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        if (myTelephonyManager == null) return "INSERT SIM"
-
         val allRatSignal = myTelephonyManager?.signalStrength
+        val timeStamp = allRatSignal?.timestampMillis
         val activeSignalList = allRatSignal?.getCellSignalStrengths()
 
-        var returnStr = " "
+        var returnStr = "Insert SIM"
         if (activeSignalList != null){
+            returnStr = ""
             for (rat in activeSignalList){
                 when (rat.toString().getOrNull(18)){
                     'G' -> returnStr += "GSM :"
@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                     'N' -> returnStr += "NR :"
                     else -> returnStr += "etc :"
                 }
-                returnStr += "[RSRP : " + rat.dbm.toString() + "dBm] \n\n" // 일단 그 신호 세기 알려주긴 함.
+                returnStr += "[RSRP : " + rat.dbm.toString() + "dBm] \n Time : $timeStamp \n" // 일단 그 신호 세기 알려주긴 함.
             }
         }
 
