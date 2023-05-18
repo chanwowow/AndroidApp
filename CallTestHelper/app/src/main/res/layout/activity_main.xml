@@ -45,8 +45,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.237"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.321" />
+        app:layout_constraintTop_toTopOf="@+id/setValueFrame"
+        app:layout_constraintVertical_bias="0.096" />
 
     <TextView
         android:id="@+id/textView3"
@@ -81,17 +81,19 @@
 
     <Spinner
         android:id="@+id/spinnerRat"
-        android:layout_width="144dp"
-        android:layout_height="27dp"
-        android:backgroundTint="@color/black"
+        android:layout_width="155dp"
+        android:layout_height="39dp"
+        android:background="@drawable/spinnertheme"
         android:entries="@array/rat_list"
-        android:spinnerMode="dropdown"
+        android:spinnerMode="dialog"
+        android:textAlignment="center"
+        android:paddingRight="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.419"
+        app:layout_constraintHorizontal_bias="0.38"
         app:layout_constraintStart_toEndOf="@+id/textView5"
-        app:layout_constraintTop_toTopOf="@+id/textView5"
-        app:layout_constraintVertical_bias="0" />
+        app:layout_constraintTop_toTopOf="@+id/setValueFrame"
+        app:layout_constraintVertical_bias="0.086" />
 
     <TextView
         android:id="@+id/textView18"
@@ -110,11 +112,12 @@
 
     <Switch
         android:id="@+id/switchAutoans"
-        android:layout_width="49dp"
+        android:layout_width="55dp"
         android:layout_height="19dp"
+        android:switchMinWidth="52dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.322"
+        app:layout_constraintHorizontal_bias="0.31"
         app:layout_constraintStart_toEndOf="@+id/textView3"
         app:layout_constraintTop_toTopOf="@+id/textView3"
         app:layout_constraintVertical_bias="0.0" />
@@ -159,6 +162,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="START"
+        android:textColor="#9DDC53"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"

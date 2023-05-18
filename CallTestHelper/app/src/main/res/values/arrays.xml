@@ -2,7 +2,8 @@
 <resources>
     <string-array name="rat_list">
         <item>Legacy</item>
-        <item>NR (NSA)</item>
-        <item>NR (SA)</item>
+        <item>5G (NSA)</item>
+        <item>5G (NSA) LSI</item>
+        <item>5G (SA)</item>
     </string-array>
 </resources>

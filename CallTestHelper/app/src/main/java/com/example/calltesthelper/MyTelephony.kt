@@ -4,8 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.telecom.TelecomManager
-import android.telephony.ServiceState
-import android.telephony.TelephonyManager
+import android.telephony.*
 import androidx.core.app.ActivityCompat
 
 class MyTelephony(context : Context) {
@@ -76,18 +75,33 @@ class MyTelephony(context : Context) {
     }
 
     fun checkEndc() : Boolean{
-        var checker : Boolean = false
         val allRatSignal = myTelephonyManager?.signalStrength
         val activeSignalList = allRatSignal?.getCellSignalStrengths()
 
-        if (activeSignalList != null){
-            for (rat in activeSignalList){
-                when (rat.toString().getOrNull(18)){
-                    'N' -> checker = true
+        if (activeSignalList != null) {
+            for (rat in activeSignalList) {
+                when (rat.toString().getOrNull(18)) {
+                    'N' -> return true // NR Cell Connected
                 }
             }
         }
-        return checker
+        return false
+    }
+
+    fun checkEndcLsi() : Boolean{
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) return false
+
+        val cellInfoList = myTelephonyManager.allCellInfo
+        if (cellInfoList != null) {
+            for (info in cellInfoList) {
+                if (info is CellInfoNr) return true
+            }
+        }
+        return false
     }
 
 //    fun getNrState() : String{

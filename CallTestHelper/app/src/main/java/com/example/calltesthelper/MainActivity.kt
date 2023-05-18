@@ -81,21 +81,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun permissionCheckRequest(){
-        // 1. 오버레이 권한
-        if(!Settings.canDrawOverlays(this)){
-            Toast.makeText(this, "Overlay Permission is required", Toast.LENGTH_SHORT).show()
-            val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName"))
-            startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
-        }
-        // 2. 휴대폰 상태 읽기 권한
+        // 1. 휴대폰 상태 읽기 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
             Toast.makeText(this, "Phone Read Permission is required", Toast.LENGTH_SHORT).show()
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 123)
         }
-        // 3. 전화 자동응답 권한
+        // 2. 오버레이 권한
+        if(!Settings.canDrawOverlays(this)){
+            Toast.makeText(this, "Overlay Permission is required", Toast.LENGTH_SHORT).show()
+            val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName"))
+            startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
+        }
+        // 3. Fine Location 권한
+        if(ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Read Location Permission is required", Toast.LENGTH_SHORT).show()
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 126)
+        }
+        // 4. 전화 자동응답 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ANSWER_PHONE_CALLS)!= PackageManager.PERMISSION_GRANTED){

@@ -1,15 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/floating_button"
+<androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="100dp"
     android:layout_height="42dp"
-    android:background="@drawable/floatingframe"
-    android:fontFamily="sans-serif-black"
-    android:paddingLeft="16dp"
-    android:paddingTop="10dp"
-    android:paddingRight="18dp"
-    android:paddingBottom="4dp"
-    android:text="OFF"
-    android:textAlignment="viewEnd"
-    android:textColor="#808080"
-    android:textSize="15dp" />
+    android:id="@+id/floating_button_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/floating_button"
+        android:layout_width="100dp"
+        android:layout_height="42dp"
+        android:fontFamily="sans-serif-black"
+        android:paddingLeft="16dp"
+        android:paddingTop="10dp"
+        android:paddingRight="18dp"
+        android:paddingBottom="4dp"
+        android:text="OFF"
+        android:textAlignment="viewEnd"
+        android:textColor="#808080"
+        android:textSize="15dp" />
+
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="42dp"
+        android:src="@drawable/floatingframe"
+        android:scaleType="fitXY"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout
+  >
+

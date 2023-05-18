@@ -20,6 +20,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -35,6 +36,7 @@ class ForegroundService : Service() {
     private lateinit var networkInfoView : View
     private lateinit var svcStateView : TextView
     private lateinit var floatingBtn : View
+    private lateinit var floatingBtnText : TextView
 
     private var startDragDistance:Int = 0
     private val xyLocation = IntArray(2)
@@ -51,6 +53,7 @@ class ForegroundService : Service() {
     private var callCheckTimer : Timer? = null
     private var periodTimer : Timer? = null
 
+    private var cnt = 0
     private var period = 30
     private var ratType = "Legacy"
 
@@ -65,6 +68,7 @@ class ForegroundService : Service() {
         networkInfoView = LayoutInflater.from(this).inflate(R.layout.foreground_service, null)
         svcStateView = networkInfoView.findViewById(R.id.stateText)
         floatingBtn = LayoutInflater.from(this).inflate(R.layout.floating_button, null)
+        floatingBtnText = floatingBtn.findViewById(R.id.floating_button)
 
         infoViewParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -133,11 +137,14 @@ class ForegroundService : Service() {
         if (!isOn) {
             overlay.addView(networkInfoView,infoViewParams)
             wakeLock.acquire() // WakeLock ON
+            RATStr = "Unknown"
+            cnt = 0
 
             when (ratType){
                 "Legacy" -> legacyRatRoutine()
-                "NR (NSA)" -> NSARoutine()
-                "NR (SA)" -> SARoutine()
+                "5G (NSA)" -> NSARoutine()
+                "5G (NSA) LSI" -> NSARoutine_Lsi()
+                "5G (SA)" -> SARoutine()
             }
 
             periodTimer = fixedRateTimer(initialDelay = 200, period = (period*1000).toLong()){
@@ -150,12 +157,11 @@ class ForegroundService : Service() {
             clearAndStopService()
 
         isOn = !isOn
-        (floatingBtn as TextView).text = if (isOn) "ON " else "OFF"
-        (floatingBtn as TextView).setTextColor( if (isOn) Color.CYAN else Color.GRAY )
+        floatingBtnText.text = if (isOn) "ON " else "OFF"
+        floatingBtnText.setTextColor( if (isOn) Color.CYAN else Color.GRAY )
     }
 
     private fun legacyRatRoutine(){
-        var cnt = 0
         svcCheckTimer = fixedRateTimer(period = 3000){
             svcStateStr = telephony.getSvcState()
             RATStr = telephony.getRAT()
@@ -169,7 +175,16 @@ class ForegroundService : Service() {
             RATStr = "NR (NSA)"
             svcStateStr = if (telephony.checkEndc()) "IN Service" else "NO Service"
             Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr
+                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
+            }
+        }
+    }
+    private fun NSARoutine_Lsi(){
+        svcCheckTimer = fixedRateTimer(period = 3000){
+            RATStr = "NR (NSA)"
+            svcStateStr = if (telephony.checkEndcLsi()) "IN Service" else "NO Service"
+            Handler(Looper.getMainLooper()).post {
+                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
             }
         }
     }
@@ -178,7 +193,7 @@ class ForegroundService : Service() {
             RATStr = telephony.getRAT()
             svcStateStr = if(RATStr == "NR") "IN Service" else "NO Service"
             Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr
+                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
             }
         }
     }
