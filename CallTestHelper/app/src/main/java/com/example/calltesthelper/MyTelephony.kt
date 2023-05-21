@@ -6,11 +6,13 @@ import android.content.pm.PackageManager
 import android.telecom.TelecomManager
 import android.telephony.*
 import androidx.core.app.ActivityCompat
+import java.util.concurrent.Executors
 
 class MyTelephony(context : Context) {
     private var myTelephonyManager: TelephonyManager
     private var myTelecomManager : TelecomManager
     private val context = context
+    private val myExecutor = Executors.newSingleThreadExecutor()
 
     init {
         myTelephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -36,7 +38,7 @@ class MyTelephony(context : Context) {
         }
     }
 
-    fun getRAT(): String {
+    fun getRAT(): String { // RadioAccessTechnology kind checker
         val networkType: Int =
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE
                 ) != PackageManager.PERMISSION_GRANTED
@@ -69,7 +71,7 @@ class MyTelephony(context : Context) {
         if(callStatus == TelephonyManager.CALL_STATE_RINGING){
             Thread{
                 Thread.sleep(2000)
-                myTelecomManager.acceptRingingCall()
+                myTelecomManager.acceptRingingCall() // auto voiceCall take
             }.start()
         }
     }
@@ -94,15 +96,42 @@ class MyTelephony(context : Context) {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) return false
+        else
+            myTelephonyManager?.requestCellInfoUpdate( myExecutor, cellInfoCallback)
 
-        val cellInfoList = myTelephonyManager.allCellInfo
-        if (cellInfoList != null) {
-            for (info in cellInfoList) {
-                if (info is CellInfoNr) return true
+        return lsiNr
+    }
+
+    private var lsiNr = false
+    private val cellInfoCallback = object : TelephonyManager.CellInfoCallback() {
+        override fun onCellInfo(cellInfoList: MutableList<CellInfo>) {
+            if (cellInfoList != null) {
+                for (info in cellInfoList) {
+                    if (info is CellInfoNr) {
+                        lsiNr = true
+                        return
+                    }
+                    lsiNr = false
+                }
             }
         }
-        return false
     }
+
+//    fun checkEndcLsi_0521() : Boolean{
+//        if (ActivityCompat.checkSelfPermission(
+//                context,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) return false
+//
+//        val cellInfoList = myTelephonyManager.allCellInfo
+//        if (cellInfoList != null) {
+//            for (info in cellInfoList) {
+//                if (info is CellInfoNr) return true
+//            }
+//        }
+//        return false
+//    }
 
 //    fun getNrState() : String{
 //        val cellInfoList =

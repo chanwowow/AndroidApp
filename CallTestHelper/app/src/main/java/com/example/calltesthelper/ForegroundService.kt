@@ -20,13 +20,11 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
 class ForegroundService : Service() {
-
     companion object{
         const val CHANNEL_ID = "ForegroundServiceChannel"
     }
@@ -47,17 +45,15 @@ class ForegroundService : Service() {
     //2. 네트워크 관련
     private lateinit var telephony : MyTelephony
     private var svcStateStr = "NO Service"
+    private var ratType = "Legacy"
     private var RATStr = "Unknown"
 
     private var svcCheckTimer : Timer? = null
     private var callCheckTimer : Timer? = null
     private var periodTimer : Timer? = null
 
-    private var cnt = 0
-    private var period = 30
-    private var ratType = "Legacy"
-
     //3. 기타 설정
+    private var period = 30
     private lateinit var wakeLock : WakeLock
     private var isOn =false
 
@@ -74,7 +70,7 @@ class ForegroundService : Service() {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // 터치 이벤트 수신x -> 다음 layer로 전달됨
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // 터치 이벤트 수신x -> 다음 layer로 전달
             PixelFormat.TRANSLUCENT)
         floatingBtnViewParams =WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -86,19 +82,19 @@ class ForegroundService : Service() {
         overlay = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         overlay.addView(floatingBtn, floatingBtnViewParams)
 
-        // 3. 기타 설정
-        // 플로팅 버튼 터치 리스너 등록
+        // 2. 기타 설정
+        // 플로팅버튼 터치 리스너 등록
         startDragDistance = dp2px(10f)
         floatingBtn.setOnTouchListener(
             TouchDragListener(this,
             floatingBtnViewParams,startDragDistance,
             {viewOnClick()}, {overlay.updateViewLayout(floatingBtn,floatingBtnViewParams)}))
 
-        // Screen Wake Lock (서비스 실행 중 화면꺼짐 방지)
+        // Screen Wake Lock (서비스 실행 중 화면 꺼짐 방지)
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CallTestHelper:WL")
 
-        // Telephony객체 생성
+        // Telephony 객체 생성
         telephony = MyTelephony(this)
     }
 
@@ -138,21 +134,13 @@ class ForegroundService : Service() {
             overlay.addView(networkInfoView,infoViewParams)
             wakeLock.acquire() // WakeLock ON
             RATStr = "Unknown"
-            cnt = 0
+            // Radio 2G,3G,4G,5G 체크
+            radioCheck(ratType)
 
-            when (ratType){
-                "Legacy" -> legacyRatRoutine()
-                "5G (NSA)" -> NSARoutine()
-                "5G (NSA) LSI" -> NSARoutine_Lsi()
-                "5G (SA)" -> SARoutine()
-            }
-
-            periodTimer = fixedRateTimer(initialDelay = 200, period = (period*1000).toLong()){
-                if (svcStateStr == "NO Service"){
+            periodTimer = fixedRateTimer(initialDelay = 700, period = (period*1000).toLong()){
+                if (svcStateStr == "NO Service")
                     noSvcHandler()
-                }
             }
-
         } else
             clearAndStopService()
 
@@ -161,40 +149,40 @@ class ForegroundService : Service() {
         floatingBtnText.setTextColor( if (isOn) Color.CYAN else Color.GRAY )
     }
 
-    private fun legacyRatRoutine(){
-        svcCheckTimer = fixedRateTimer(period = 3000){
-            svcStateStr = telephony.getSvcState()
-            RATStr = telephony.getRAT()
-            Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
-            }
-        }
-    }
-    private fun NSARoutine(){
-        svcCheckTimer = fixedRateTimer(period = 3000){
-            RATStr = "NR (NSA)"
-            svcStateStr = if (telephony.checkEndc()) "IN Service" else "NO Service"
-            Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
-            }
-        }
-    }
-    private fun NSARoutine_Lsi(){
-        svcCheckTimer = fixedRateTimer(period = 3000){
-            RATStr = "NR (NSA)"
-            svcStateStr = if (telephony.checkEndcLsi()) "IN Service" else "NO Service"
-            Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
-            }
-        }
-    }
-    private fun SARoutine(){
-        svcCheckTimer = fixedRateTimer(period = 3000){
-            RATStr = telephony.getRAT()
-            svcStateStr = if(RATStr == "NR") "IN Service" else "NO Service"
-            Handler(Looper.getMainLooper()).post {
-                svcStateView.text = RATStr + "\n\n" + svcStateStr + " "+ cnt++
-            }
+    private fun radioCheck(Rat : String){
+        svcCheckTimer = when (Rat){
+            "5G (NSA)" ->
+                fixedRateTimer(period = 3000){
+                    RATStr = "NR (NSA)"
+                    svcStateStr = if (telephony.checkEndc()) "Connected" else "NO Service"
+                    Handler(Looper.getMainLooper()).post {
+                        svcStateView.text = RATStr + "\n\n" + svcStateStr
+                    }
+                }
+            "5G (NSA) LSI" ->
+                fixedRateTimer(period = 3000){
+                    RATStr = "NR (NSA) s.lsi"
+                    svcStateStr = if (telephony.checkEndcLsi()) "Connected" else "NO Service"
+                    Handler(Looper.getMainLooper()).post {
+                        svcStateView.text = RATStr + "\n\n" + svcStateStr
+                    }
+                }
+            "5G (SA)" ->
+                fixedRateTimer(period = 3000){
+                    RATStr = telephony.getRAT()
+                    svcStateStr = if(RATStr == "NR") "Connected" else "NO Service"
+                    Handler(Looper.getMainLooper()).post {
+                        svcStateView.text = RATStr + "\n\n" + svcStateStr
+                    }
+                }
+            else ->
+                fixedRateTimer(period = 3000){
+                    svcStateStr = telephony.getSvcState()
+                    RATStr = telephony.getRAT()
+                    Handler(Looper.getMainLooper()).post {
+                        svcStateView.text = RATStr + "\n\n" + svcStateStr
+                    }
+                }
         }
     }
 
