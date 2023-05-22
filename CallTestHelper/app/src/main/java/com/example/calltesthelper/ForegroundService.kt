@@ -78,6 +78,7 @@ class ForegroundService : Service() {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT)
+        floatingBtnViewParams.y = -800
 
         overlay = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         overlay.addView(floatingBtn, floatingBtnViewParams)
@@ -118,12 +119,10 @@ class ForegroundService : Service() {
         // 2. intent 값 복사
         ratType = intent?.getStringExtra("RAT")!!
         period = intent.getIntExtra("Period", 30)
-
         val autoAns = intent.getBooleanExtra("AutoAnswer", false )
+
         callCheckTimer = if (autoAns){
-            fixedRateTimer(period = 3000){
-                telephony.callCheckAndTake()
-            }
+            fixedRateTimer(period = 3000){ telephony.callCheckAndTake()}
         } else null
 
         return super.onStartCommand(intent, flags, startId)
@@ -175,7 +174,7 @@ class ForegroundService : Service() {
                         svcStateView.text = RATStr + "\n\n" + svcStateStr
                     }
                 }
-            else ->
+            else -> // Legacy RAT
                 fixedRateTimer(period = 3000){
                     svcStateStr = telephony.getSvcState()
                     RATStr = telephony.getRAT()
@@ -205,6 +204,7 @@ class ForegroundService : Service() {
                     Settings.Global.AIRPLANE_MODE_ON,0
                 ) != 0
             }
+            Thread.sleep(500)
             floatingClick()
             Thread.sleep(1000)
             CLKSVC?.backPress()

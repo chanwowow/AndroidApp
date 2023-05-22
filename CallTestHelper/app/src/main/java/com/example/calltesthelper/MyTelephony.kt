@@ -132,22 +132,4 @@ class MyTelephony(context : Context) {
 //        }
 //        return false
 //    }
-
-//    fun getNrState() : String{
-//        val cellInfoList =
-//            if (ActivityCompat.checkSelfPermission(
-//                    context, Manifest.permission.ACCESS_FINE_LOCATION
-//                ) != PackageManager.PERMISSION_GRANTED
-//            ) return "Needs Permission"
-//            else  myTelephonyManager.allCellInfo
-//
-//        for (cellInfo in cellInfoList) {
-//            if (cellInfo is CellInfoNr) {
-//                val nrCellIdentity = cellInfo.cellIdentity
-//
-//                return nrCellIdentity.toString()
-//            }
-//        }
-//        return "NR noService"
-//    }
 }
