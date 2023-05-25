@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun permissionOthers() : Boolean {
         var checker = true
-        // 1. 휴대폰 상태 읽기 권한
+        // 1. 전화 상태 읽기 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
@@ -98,23 +98,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 123)
             checker = false
         }
-        // 2. Fine Location 권한
-        if(ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Access Location Permission is required", Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 126)
-            checker = false
-        }
-//        // 3. BackGround Location 권한
-//        if(ContextCompat.checkSelfPermission(
-//                this,
-//                Manifest.permission.ACCESS_BACKGROUND_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-//            Toast.makeText(this, "Access Location Always Permission is required", Toast.LENGTH_SHORT).show()
-//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 126)
-//            checker = false
-//        }
-        // 4. 전화 자동응답 권한
+        // 2. 전화 자동응답 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ANSWER_PHONE_CALLS)!= PackageManager.PERMISSION_GRANTED){
@@ -122,6 +106,22 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ANSWER_PHONE_CALLS), 124)
             checker = false
         }
+        // 3. Fine Location 권한
+        if(ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+            Toast.makeText(this, "Access Location Permission is required", Toast.LENGTH_SHORT).show()
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 126)
+            checker = false
+        }
+//        // 4. BackGround Location 권한
+//        if(ContextCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_BACKGROUND_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+//            Toast.makeText(this, "Access Location Always Permission is required", Toast.LENGTH_SHORT).show()
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 126)
+//            checker = false
+//        }
         return checker
     }
 
