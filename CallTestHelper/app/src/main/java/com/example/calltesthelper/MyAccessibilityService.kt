@@ -29,7 +29,7 @@ class MyAccessibilityService : AccessibilityService() {
         dispatchGesture(gestureDescription, null, null)
     }
 
-    // 입력 2개 좌표 사이를 Swipe Action 수행 메소드
+    // 2개 좌표 사이 Swipe Action 수행 메소드
     fun swipeAction(startX: Int, startY: Int, endX: Int, endY: Int){
         val swipePath = Path()
         swipePath.moveTo(startX.toFloat(), startY.toFloat())
@@ -41,7 +41,7 @@ class MyAccessibilityService : AccessibilityService() {
         dispatchGesture(gestureDescription, null,null)
     }
 
-    // 뒤로가기 버튼 1회 수행 메소드
+    // Back Button 메소드
     fun backPress(){
         performGlobalAction(GLOBAL_ACTION_BACK)
     }

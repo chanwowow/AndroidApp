@@ -93,7 +93,7 @@ class ForegroundService : Service() {
 
         // Screen Wake Lock (서비스 실행 중 화면 꺼짐 방지)
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "CallTestHelper:WL")
+        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "CallTestHelper:WL")
 
         // Telephony 객체 생성
         telephony = MyTelephony(this)
@@ -140,7 +140,8 @@ class ForegroundService : Service() {
                 if (svcStateStr == "NO Service")
                     noSvcHandler()
             }
-        } else
+        }
+        else
             clearAndStopService()
 
         isOn = !isOn
@@ -229,6 +230,7 @@ class ForegroundService : Service() {
 
     override fun onDestroy() {
         showToastInService("Call Test Helper is terminated!")
+
         super.onDestroy()
         overlay.removeView(floatingBtn)
         if(isOn) clearAndStopService()
