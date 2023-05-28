@@ -32,21 +32,21 @@ class MainActivity : AppCompatActivity() {
 
         // 1. 서비스 시작
         startButton.setOnClickListener {
-            // 오버레이 권한 체크 후 실행
-            if(permissionOverlay()) {
-                val ratType = ratSpinner.selectedItem.toString()
-                val autoAns = autoAnsSwitch.isChecked
-                val period = Integer.parseInt(periodTextInput.text.toString())
+            // 권한 체크 후 실행
+            if (!(permissionOthers() && permissionOverlay() && permissionAccess()))
+                return@setOnClickListener
 
-                serviceIntent.putExtra("RAT", ratType)
-                serviceIntent.putExtra("AutoAnswer", autoAns)
-                serviceIntent.putExtra("Period", period)
+            val ratType = ratSpinner.selectedItem.toString()
+            val autoAns = autoAnsSwitch.isChecked
+            val period = Integer.parseInt(periodTextInput.text.toString())
 
-                startForegroundService(serviceIntent)
-                moveTaskToBack(true)
-            }
+            serviceIntent.putExtra("RAT", ratType)
+            serviceIntent.putExtra("AutoAnswer", autoAns)
+            serviceIntent.putExtra("Period", period)
+
+            startForegroundService(serviceIntent)
+            moveTaskToBack(true)
         }
-
         // 2. 서비스 종료
         stopButton.setOnClickListener {
             stopService(serviceIntent)
@@ -56,11 +56,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        val hasPermission = permissionAccess()
-        if (!hasPermission)
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-
-        permissionOthers()
+        if (permissionOthers()) {
+            if (permissionOverlay()) {
+                if (!permissionAccess()) {
+                    startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+            }
+        }
     }
 
     private fun permissionAccess(): Boolean {
@@ -78,11 +80,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun permissionOverlay() : Boolean {
         // 오버레이 권한
-        if(!Settings.canDrawOverlays(this)){
-            Toast.makeText(this, "Overlay Permission is required", Toast.LENGTH_SHORT).show()
+        if (!Settings.canDrawOverlays(this)){
             val permissionIntent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName"))
-            startActivityForResult(permissionIntent,110) // 여기 request code 는 이게 맞나?
+            startActivityForResult(permissionIntent,110)
             return false
         }
         else return true
@@ -90,31 +91,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun permissionOthers() : Boolean {
         var checker = true
-        // 1. 전화 상태 읽기 권한
+        // 1. 전화 상태 읽기, 응답 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_PHONE_STATE)!= PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Phone Read Permission is required", Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 123)
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ANSWER_PHONE_CALLS), 123)
             checker = false
         }
-        // 2. 전화 자동응답 권한
-        if(ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ANSWER_PHONE_CALLS)!= PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Call Answer Permission is required", Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ANSWER_PHONE_CALLS), 124)
-            checker = false
-        }
-        // 3. Fine Location 권한
+        // 2. Fine Location 권한
         if(ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-            Toast.makeText(this, "Access Location Permission is required", Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 126)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 104)
             checker = false
         }
-//        // 4. BackGround Location 권한
+//        // 3. BackGround Location 권한
 //        if(ContextCompat.checkSelfPermission(
 //                this,
 //                Manifest.permission.ACCESS_BACKGROUND_LOCATION)!= PackageManager.PERMISSION_GRANTED){
