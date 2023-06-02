@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.calltesthelper'
+    namespace 'com.chanwow.calltesthelper'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.calltesthelper"
+        applicationId "com.chanwow.calltesthelper"
         minSdk 31
         targetSdk 33
         versionCode 1

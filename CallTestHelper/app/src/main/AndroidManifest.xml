@@ -26,12 +26,12 @@
         android:theme="@style/Theme.CallTestHelper"
         tools:targetApi="31">
         <service
-            android:name=".ForegroundService"
+            android:name="com.chanwow.calltesthelper.ForegroundService"
             android:enabled="true"
             android:exported="true"></service>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.chanwow.calltesthelper.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -42,7 +42,7 @@
         </activity>
 
         <service
-            android:name=".MyAccessibilityService"
+            android:name="com.chanwow.calltesthelper.MyAccessibilityService"
             android:label="@string/accessibility_service_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
