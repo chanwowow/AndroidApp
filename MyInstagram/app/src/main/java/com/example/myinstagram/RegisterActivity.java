@@ -18,7 +18,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -38,7 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
     ProgressDialog progressDialog;
 
     // Firebase Database
-    private DatabaseReference mRootRef;
+    private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
 
     @Override
@@ -55,7 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(this);
 
-        mRootRef = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         loginUser.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,7 +97,7 @@ public class RegisterActivity extends AppCompatActivity {
                 map.put("username", username);
                 map.put("id", mAuth.getCurrentUser().getUid());
 
-                mRootRef.child("Users").child(mAuth.getCurrentUser().getUid()).setValue(map)
+                mDatabase.child("Users").child(mAuth.getCurrentUser().getUid()).setValue(map)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
