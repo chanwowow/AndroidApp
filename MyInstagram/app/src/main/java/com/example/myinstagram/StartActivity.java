@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class StartActivity extends AppCompatActivity {
 
     private ImageView iconImage;
@@ -52,6 +54,8 @@ public class StartActivity extends AppCompatActivity {
                         .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
             }
         });
+
+        //FirebaseAuth.getInstance().signOut(); // Erase previous login session
     }
 
     private class MyAnimationListener implements Animation.AnimationListener{
@@ -71,6 +75,16 @@ public class StartActivity extends AppCompatActivity {
         @Override
         public void onAnimationRepeat(Animation animation) {
 
+        }
+    }
+
+    // To make it no need to login again
+    protected void onStart() {
+        super.onStart();
+
+        if(FirebaseAuth.getInstance().getCurrentUser() != null){
+            startActivity(new Intent(StartActivity.this, MainActivity.class));
+            finish();  // If you call finish(), This Activity will finish (terminated)
         }
     }
 }
