@@ -14,32 +14,57 @@
         android:text="State : "
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.258"
+        app:layout_constraintHorizontal_bias="0.252"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.296" />
 
     <TextView
         android:id="@+id/text_status_val"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="  "
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/text_status_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.207"
         app:layout_constraintStart_toEndOf="@+id/text_status_title"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/text_status_title"/>
 
     <Button
         android:id="@+id/button_start_asr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="START"
+        android:text="SPEECH"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_status_title"
         app:layout_constraintVertical_bias="0.097" />
+
+    <Button
+        android:id="@+id/button_start_audio_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="START AUDIORECORD"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.04"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_start_asr"
+        app:layout_constraintVertical_bias="0.1" />
+
+    <Button
+        android:id="@+id/button_stop_audio_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="STOP AUDIORECORD"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.428"
+        app:layout_constraintStart_toEndOf="@+id/button_start_audio_record"
+        app:layout_constraintTop_toBottomOf="@+id/button_start_asr"
+        app:layout_constraintVertical_bias="0.1" />
 
     <Button
         android:id="@+id/button_get_buffer"
@@ -50,7 +75,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_start_asr"
+        app:layout_constraintTop_toBottomOf="@+id/button_start_audio_record"
         app:layout_constraintVertical_bias="0.097" />
 
     <TextView

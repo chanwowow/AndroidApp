@@ -20,6 +20,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     SpeechRecognizer mAsr;
@@ -59,12 +61,31 @@ public class MainActivity extends AppCompatActivity {
 
         // 3. Audio Buffer Reader
         mBufferReader = new AudioBufferReader();
-        mBufferReader.startRecording();
+        mBufferReader.setupRecording();
 
-        Button buttonReadBuffer = findViewById(R.id.button_get_buffer);
-        buttonReadBuffer.setOnClickListener(v ->
-                mTextViewBuffer.setText(mBufferReader.getAudioBuffer())
-        );
+        Button buttonStartAudioRecord = findViewById(R.id.button_start_audio_record);
+        buttonStartAudioRecord.setOnClickListener(v -> mBufferReader.startRecording());
+
+        Button buttonStopAudioRecord = findViewById(R.id.button_stop_audio_record);
+        buttonStopAudioRecord.setOnClickListener(v -> mBufferReader.stopRecording());
+
+//        Button buttonReadBuffer = findViewById(R.id.button_get_buffer);
+//        buttonReadBuffer.setOnClickListener(v ->
+//                mTextViewBuffer.setText(mBufferReader.getAudioBuffer())
+//        );
+
+        fixedRateBufferReader();
+    }
+
+    void fixedRateBufferReader() {
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                mTextViewBuffer.setText(mBufferReader.getAudioBuffer());
+            }
+        };
+        timer.scheduleAtFixedRate(task, 1000, 200); // task, initial delay, interval
     }
 
     void requestPermissions() {

@@ -19,7 +19,7 @@ public class AudioBufferReader {
     private AudioRecord audioRecord;
     byte[] mAudioBuffer;
 
-    public void startRecording() {
+    public void setupRecording() {
         int minBufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
         audioRecord = new AudioRecord(AudioSource.MIC,
                 SAMPLE_RATE,
@@ -28,7 +28,9 @@ public class AudioBufferReader {
                 minBufferSize * 10);
 
         mAudioBuffer = new byte[BUFFER_SIZE * 2]; // PCM 16비트이므로 byte 배열 크기는 2배
+    }
 
+    public void startRecording() {
         audioRecord.startRecording();
         isRecording = true;
     }
@@ -47,9 +49,11 @@ public class AudioBufferReader {
     }
 
     public void stopRecording() {
-        isRecording = false;
-        audioRecord.stop();
-        audioRecord.release();
+        if (isRecording) {
+            isRecording = false;
+            audioRecord.stop();
+            audioRecord.release();
+        }
     }
 
     public int[] convertByteToIntArray(byte[] byteArray) {
