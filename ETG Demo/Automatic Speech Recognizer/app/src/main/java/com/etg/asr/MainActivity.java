@@ -24,6 +24,9 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     SpeechRecognizer mAsr;
     TextView mTextViewState;
+    TextView mTextViewBuffer;
+
+    AudioBufferReader mBufferReader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         mTextViewState = findViewById(R.id.text_status_val);
+        mTextViewBuffer = findViewById(R.id.text_buffer_val);
 
         requestPermissions();
 
@@ -51,6 +55,15 @@ public class MainActivity extends AppCompatActivity {
         Button buttonStart = findViewById(R.id.button_start_asr);
         buttonStart.setOnClickListener(v ->
                 mAsr.startListening(intent)
+        );
+
+        // 3. Audio Buffer Reader
+        mBufferReader = new AudioBufferReader();
+        mBufferReader.startRecording();
+
+        Button buttonReadBuffer = findViewById(R.id.button_get_buffer);
+        buttonReadBuffer.setOnClickListener(v ->
+                mTextViewBuffer.setText(mBufferReader.getAudioBuffer())
         );
     }
 
