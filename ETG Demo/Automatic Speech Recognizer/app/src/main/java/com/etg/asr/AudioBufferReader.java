@@ -52,7 +52,7 @@ public class AudioBufferReader {
         if (isRecording) {
             isRecording = false;
             audioRecord.stop();
-            audioRecord.release();
+            //audioRecord.release();
         }
     }
 
