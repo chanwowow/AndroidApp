@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">Call Helper</string>
-    <string name="accessibility_service_name">Call Helper</string>
-    <string name="accessibility_service_description">For Auto Clicking Service</string>
-    <string name="accessibility_service_id">com.example.callhelper/.MyAccessibilityService</string>
-</resources>
